@@ -7,8 +7,9 @@ bool repeat = true;
 do
 {
     DisplayElements(simulation.Params);
+    Console.WriteLine();
 
-    switch (Console.ReadKey().Key)
+    switch (Console.ReadKey(true).Key)
     {
         case ConsoleKey.Tab:
             simulation.SimulateNextStep();
@@ -24,17 +25,13 @@ do
             repeat = false;
             break;
     }
-
-    Console.WriteLine();
 } while (repeat);
 
-Console.ReadKey();
-
-void DisplayElements<TElement>(Parameters<TElement> parameters)
+static void DisplayElements<TElement>(Parameters<TElement> parameters)
     where TElement : Element
 {
     foreach (TElement element in parameters.Elements)
     {
-        Console.Write($"{element} ; ");
+        Console.Write($"{element.DisplayName} ; ");
     }
 }
