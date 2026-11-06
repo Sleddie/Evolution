@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Evolution.App.Console/Evolution.App.Console.csproj" />
+  <Project Path="Evolution.Model/Evolution.Model.csproj" />
+  <Project Path="Evolution.Process/Evolution.Process.csproj" />
+</Solution>
