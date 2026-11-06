@@ -52,6 +52,7 @@ public class ElementCollection<TElement> : Collection<TElement>
 
     public virtual void Shuffle()
     {
+        Console.WriteLine("Elements are shuffled.");
         _current = 0;
 
         for (int i = 0; i < Count; i++)
@@ -62,7 +63,10 @@ public class ElementCollection<TElement> : Collection<TElement>
                 i--;
                 continue;
             }
+        }
 
+        for (int i = 0; i < Count - 1; i++)
+        {
             int j = Randomizer.Next(i + 1, Count);
             (this[i], this[j]) = (this[j], this[i]);
         }

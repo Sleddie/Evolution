@@ -17,7 +17,7 @@ public class Element : IInteractiveUnit<Element>
         get;
         protected set
         {
-            if (IsDisposed)
+            if (CheckIfDisposed())
                 return;
 
             field = (byte)(value % Divider);
@@ -30,7 +30,7 @@ public class Element : IInteractiveUnit<Element>
         get;
         protected set
         {
-            if (IsDisposed)
+            if (CheckIfDisposed() && value is not null)
                 return;
 
             field = value;
@@ -41,29 +41,63 @@ public class Element : IInteractiveUnit<Element>
         get;
         protected set
         {
-            if (IsDisposed)
+            if (CheckIfDisposed() && value is not null)
                 return;
 
             field = value;
         }
     }
 
+    public string DisplayName => IsDisposed ? "" : ToString();
+
     public override string ToString()
     {
         string displayString = $"{Value}";
 
         if (Left is not null)
-            displayString = '+' + displayString;
+            displayString = $"+{displayString}";
 
         if (Right is not null)
-            displayString += displayString + '+';
+            displayString += '+';
 
         return displayString;
     }
 
+    public byte SetValue(int newValue)
+    {
+        if (CheckIfDisposed())
+            return 0;
+
+        return Value = (byte)(newValue % Divider);
+    }
+
+    public bool ReplaceLeft(Element newLeft)
+    {
+        if (CheckIfDisposed() || newLeft.CheckIfDisposed())
+            return false;
+
+        Left?.Right = null;
+        Left = newLeft;
+        newLeft.Right?.Left = null;
+        newLeft.Right = this;
+        return true;
+    }
+
+    public bool ReplaceRight(Element newRight)
+    {
+        if (CheckIfDisposed() || newRight.CheckIfDisposed())
+            return false;
+
+        Right?.Left = null;
+        Right = newRight;
+        newRight.Left?.Right = null;
+        newRight.Left = this;
+        return true;
+    }
+
     public virtual bool Interact(Element right)
     {
-        if (IsDisposed)
+        if (CheckIfDisposed() || right.CheckIfDisposed())
             return false;
 
         byte rightValue = right.Value;
@@ -81,23 +115,19 @@ public class Element : IInteractiveUnit<Element>
         return Compete(right);
     }
 
-    protected byte SetValue(int newValue)
-    {
-        if (IsDisposed)
-            return 0;
-
-        return Value = (byte)(newValue % Divider);
-    }
-
     protected virtual bool Connect(Element right)
     {
         if (IsDisposed)
             return false;
 
-        Right?.Left = null;
-        Right = right;
-        right.Left?.Right = null;
-        right.Left = this;
+        if (Right == right && right.Left == this)
+        {
+            Console.WriteLine($"Elements {this} and {right} are already connected.");
+            return true;
+        }
+
+        Console.WriteLine($"Elements {this} and {right} connect.");
+        ReplaceRight(right);
         return true;
     }
 
@@ -106,6 +136,7 @@ public class Element : IInteractiveUnit<Element>
         if (IsDisposed)
             return false;
 
+        Console.WriteLine($"Elements {this} and {right} don't interact.");
         return true;
     }
 
@@ -113,6 +144,8 @@ public class Element : IInteractiveUnit<Element>
     {
         if (IsDisposed)
             return false;
+
+        Console.Write($"Elements {this} and {right} balance. ");
 
         if (Value > right.Value)
         {
@@ -125,6 +158,7 @@ public class Element : IInteractiveUnit<Element>
             right.SetValue(right.Value - Decrement);
         }
 
+        Console.WriteLine($"Now are {this} and {right}.");
         return true;
     }
 
@@ -133,20 +167,38 @@ public class Element : IInteractiveUnit<Element>
         if (IsDisposed)
             return false;
 
+        Console.Write($"Elements {this} and {right} compete. ");
         int newValue = Value + right.Value;
+        bool leftWins = Value > right.Value;
+        Element winner = leftWins ? this : right;
+        Element loser = leftWins ? right : this;
 
-        if (Value > right.Value)
+        if (winner.Left is null && loser.Left is not null)
         {
-            SetValue(newValue);
-            right.Dispose();
-        }
-        if (Value < right.Value)
-        {
-            right.SetValue(newValue);
-            Dispose();
+            winner.ReplaceLeft(loser.Left);
         }
 
+        if (winner.Right is null && loser.Right is not null)
+        {
+            winner.ReplaceRight(loser.Right);
+        }
+
+        winner.SetValue(newValue);
+        loser.Dispose();
+
+        Console.Write($"Element {winner} wins; ");
+        loser.CheckIfDisposed();
         return true;
+    }
+
+    public virtual bool CheckIfDisposed()
+    {
+        if (IsDisposed)
+        {
+            Console.WriteLine($"Element {this} is disposed.");
+        }
+
+        return IsDisposed;
     }
 
     public virtual void Dispose()

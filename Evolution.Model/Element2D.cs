@@ -6,7 +6,7 @@ public class Element2D(byte initialValue) : Element(initialValue)
     {
         get; protected set
         {
-            if (IsDisposed)
+            if (CheckIfDisposed() && value is not null)
                 return;
 
             field = value;
@@ -16,7 +16,7 @@ public class Element2D(byte initialValue) : Element(initialValue)
     {
         get; protected set
         {
-            if (IsDisposed)
+            if (CheckIfDisposed() && value is not null)
                 return;
 
             field = value;
