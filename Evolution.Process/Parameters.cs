@@ -17,7 +17,10 @@ public partial class Parameters<TElement>(IEnumerable<TElement> elements)
         var pairNullable = _elements.GetNextPair();
 
         if (pairNullable is null)
+        {
+            _elements.Shuffle();
             return false;
+        }
 
         var (left, right) = pairNullable.Value;
         bool isCorrect = left.Interact(right);
